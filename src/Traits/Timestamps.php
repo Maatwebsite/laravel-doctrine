@@ -20,7 +20,8 @@ trait Timestamps {
     /**
      * @ORM\PrePersist
      */
-    public function prePersist() {
+    public function prePersist()
+    {
         $now = new Datetime;
         $this->createdAt = $now;
         $this->updatedAt = $now;
@@ -29,23 +30,40 @@ trait Timestamps {
     /**
      * @ORM\PreUpdate
      */
-    public function preUpdate() {
+    public function preUpdate()
+    {
         $this->updatedAt = new DateTime;
     }
 
-    public function getCreatedAt() {
+    /**
+     * @return DateTime
+     */
+    public function getCreatedAt()
+    {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(DateTime $createdAt) {
+    /**
+     * @param DateTime $createdAt
+     */
+    public function setCreatedAt(DateTime $createdAt)
+    {
         $this->createdAt = $createdAt;
     }
 
-    public function getUpdatedAt() {
+    /**
+     * @return DateTime
+     */
+    public function getUpdatedAt()
+    {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(DateTime $updatedAt) {
+    /**
+     * @param DateTime $updatedAt
+     */
+    public function setUpdatedAt(DateTime $updatedAt)
+    {
         $this->updatedAt = $updatedAt;
     }
 }

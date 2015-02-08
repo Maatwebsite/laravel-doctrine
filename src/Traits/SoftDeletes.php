@@ -11,15 +11,27 @@ trait SoftDeletes {
      */
     private $deletedAt;
 
-    public function getDeletedAt() {
+    /**
+     * @return DateTime
+     */
+    public function getDeletedAt()
+    {
         return $this->deletedAt;
     }
 
-    public function setDeletedAt(DateTime $deletedAt) {
+    /**
+     * @param DateTime $deletedAt
+     */
+    public function setDeletedAt(DateTime $deletedAt)
+    {
         $this->deletedAt = $deletedAt;
     }
 
-    public function isDeleted() {
+    /**
+     * @return bool
+     */
+    public function isDeleted()
+    {
         return new DateTime > $this->deletedAt;
     }
 }

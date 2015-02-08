@@ -5,15 +5,22 @@ use DateTime;
 
 class SoftDeletableListener {
 
-    public function onFlush(OnFlushEventArgs $event) {
+    /**
+     * @param OnFlushEventArgs $event
+     */
+    public function onFlush(OnFlushEventArgs $event)
+    {
         $entityManager = $event->getEntityManager();
         $unitOfWork = $entityManager->getUnitOfWork();
+
         foreach ($unitOfWork->getScheduledEntityDeletions() as $entity) {
             if ($this->isSoftDeletable($entity)) {
                 $metadata = $entityManager->getClassMetadata(get_class($entity));
                 $oldDeletedAt = $metadata->getFieldValue($entity, 'deletedAt');
+
                 if ($oldDeletedAt instanceof DateTime)
                     continue;
+
                 $now = new DateTime;
                 $metadata->setFieldValue($entity, 'deletedAt', $now);
                 $entityManager->persist($entity);
@@ -26,7 +33,12 @@ class SoftDeletableListener {
         }
     }
 
-    private function isSoftDeletable($entity) {
+    /**
+     * @param $entity
+     * @return bool
+     */
+    private function isSoftDeletable($entity)
+    {
         return array_key_exists('Mitch\LaravelDoctrine\Traits\SoftDeletes', class_uses_recursive(get_class($entity)));
     }
 }

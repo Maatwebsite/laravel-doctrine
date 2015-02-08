@@ -1,19 +1,17 @@
 <?php namespace Mitch\LaravelDoctrine;
 
-use App;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\Tools\Setup;
 use Doctrine\ORM\EntityManager;
+use Mitch\LaravelDoctrine\Cache;
 use Doctrine\Common\EventManager;
 use Illuminate\Support\ServiceProvider;
-use Mitch\LaravelDoctrine\Cache;
 use Mitch\LaravelDoctrine\Configuration;
-use Mitch\LaravelDoctrine\Configuration\DriverMapper;
 use Mitch\LaravelDoctrine\Configuration\SqlMapper;
-use Mitch\LaravelDoctrine\Configuration\SqliteMapper;
 use Mitch\LaravelDoctrine\Configuration\OCIMapper;
+use Mitch\LaravelDoctrine\Configuration\SqliteMapper;
+use Mitch\LaravelDoctrine\Configuration\DriverMapper;
 use Mitch\LaravelDoctrine\EventListeners\SoftDeletableListener;
-use Mitch\LaravelDoctrine\Filters\TrashedFilter;
 use Mitch\LaravelDoctrine\Validation\DoctrinePresenceVerifier;
 
 class LaravelDoctrineServiceProvider extends ServiceProvider {
@@ -24,7 +22,13 @@ class LaravelDoctrineServiceProvider extends ServiceProvider {
      */
     protected $defer = false;
 
-    public function boot() {
+    /**
+     * Boot the service provider.
+     *
+     * @return void
+     */
+    public function boot()
+    {
         $this->extendAuthManager();
     }
 
@@ -32,7 +36,8 @@ class LaravelDoctrineServiceProvider extends ServiceProvider {
      * Register the service provider.
      * @return void
      */
-    public function register() {
+    public function register()
+    {
         $this->registerConfigurationMapper();
         $this->registerCacheManager();
         $this->registerEntityManager();
@@ -53,11 +58,13 @@ class LaravelDoctrineServiceProvider extends ServiceProvider {
      */
     private function registerConfigurationMapper()
     {
-        $this->app->bind(DriverMapper::class, function () {
+        $this->app->bind('Mitch\LaravelDoctrine\Configuration\DriverMapper', function ()
+        {
             $mapper = new DriverMapper;
             $mapper->registerMapper(new SqlMapper);
             $mapper->registerMapper(new SqliteMapper);
             $mapper->registerMapper(new OCIMapper);
+
             return $mapper;
         });
     }
@@ -68,26 +75,33 @@ class LaravelDoctrineServiceProvider extends ServiceProvider {
      */
     public function registerValidationVerifier()
     {
-        $this->app->bindShared('validation.presence', function()
+        $this->app->bindShared('validation.presence', function ($app)
         {
-            return new DoctrinePresenceVerifier(EntityManagerInterface::class);
+            return new DoctrinePresenceVerifier(
+                $app['Doctrine\ORM\EntityManagerInterface']
+            );
         });
     }
 
-    public function registerCacheManager() {
-        $this->app->bind('Mitch\LaravelDoctrine\CacheManager', function ($app) {
+    public function registerCacheManager()
+    {
+        $this->app->bind('Mitch\LaravelDoctrine\CacheManager', function ($app)
+        {
             $manager = new CacheManager($app['config']['doctrine.cache']);
             $manager->add(new Cache\ApcProvider);
             $manager->add(new Cache\MemcacheProvider);
             $manager->add(new Cache\RedisProvider);
             $manager->add(new Cache\XcacheProvider);
             $manager->add(new Cache\NullProvider);
+
             return $manager;
         });
     }
 
-    private function registerEntityManager() {
-        $this->app->singleton('Doctrine\ORM\EntityManager', function ($app) {
+    private function registerEntityManager()
+    {
+        $this->app->singleton('Doctrine\ORM\EntityManager', function ($app)
+        {
             $config = $app['config']['doctrine'];
             $metadata = Setup::createAnnotationMetadataConfiguration(
                 $config['metadata'],
@@ -96,31 +110,38 @@ class LaravelDoctrineServiceProvider extends ServiceProvider {
                 $app['Mitch\LaravelDoctrine\CacheManager']->getCache($config['cache_provider']),
                 $config['simple_annotations']
             );
-            $metadata->addFilter('trashed', TrashedFilter::class);
+
+            $metadata->addFilter('trashed', 'Mitch\LaravelDoctrine\Filters\TrashedFilter');
             $metadata->setAutoGenerateProxyClasses($config['proxy']['auto_generate']);
             $metadata->setDefaultRepositoryClassName($config['repository']);
             $metadata->setSQLLogger($config['logger']);
 
-            if (isset($config['proxy']['namespace']))
+            if ( isset($config['proxy']['namespace']) )
                 $metadata->setProxyNamespace($config['proxy']['namespace']);
 
             $eventManager = new EventManager;
             $eventManager->addEventListener(Events::onFlush, new SoftDeletableListener);
             $entityManager = EntityManager::create($this->mapLaravelToDoctrineConfig($app['config']), $metadata, $eventManager);
             $entityManager->getFilters()->enable('trashed');
+
             return $entityManager;
         });
+
         $this->app->singleton('Doctrine\ORM\EntityManagerInterface', 'Doctrine\ORM\EntityManager');
     }
 
-    private function registerClassMetadataFactory() {
-        $this->app->singleton('Doctrine\ORM\Mapping\ClassMetadataFactory', function ($app) {
+    private function registerClassMetadataFactory()
+    {
+        $this->app->singleton('Doctrine\ORM\Mapping\ClassMetadataFactory', function ($app)
+        {
             return $app['Doctrine\ORM\EntityManager']->getMetadataFactory();
         });
     }
 
-    private function extendAuthManager() {
-        $this->app['Illuminate\Auth\AuthManager']->extend('doctrine', function ($app) {
+    private function extendAuthManager()
+    {
+        $this->app['Illuminate\Auth\AuthManager']->extend('doctrine', function ($app)
+        {
             return new DoctrineUserProvider(
                 $app['Illuminate\Contracts\Hashing\Hasher'],
                 $app['Doctrine\ORM\EntityManager'],
@@ -133,7 +154,8 @@ class LaravelDoctrineServiceProvider extends ServiceProvider {
      * Get the services provided by the provider.
      * @return array
      */
-    public function provides() {
+    public function provides()
+    {
         return [
             'Mitch\LaravelDoctrine\CacheManager',
             'Doctrine\ORM\EntityManagerInterface',
@@ -150,9 +172,11 @@ class LaravelDoctrineServiceProvider extends ServiceProvider {
      * @throws \Exception
      * @return array
      */
-    private function mapLaravelToDoctrineConfig($config) {
+    private function mapLaravelToDoctrineConfig($config)
+    {
         $default = $config['database.default'];
         $connection = $config["database.connections.{$default}"];
-        return App::make('Mitch\LaravelDoctrine\Configuration\DriverMapper')->map($connection);
+
+        return $this->app->make('Mitch\LaravelDoctrine\Configuration\DriverMapper')->map($connection);
     }
 }

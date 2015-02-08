@@ -2,7 +2,11 @@
 
 trait EmailReminder {
 
-    public function getReminderEmail() {
+    /**
+     * @return string
+     */
+    public function getReminderEmail()
+    {
         return $this->email;
     }
 } 

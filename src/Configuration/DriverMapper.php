@@ -4,16 +4,30 @@ use Exception;
 
 class DriverMapper {
 
+    /**
+     * @var array
+     */
     private $mappers = [];
 
-    public function registerMapper(Mapper $mapper) {
+    /**
+     * @param Mapper $mapper
+     */
+    public function registerMapper(Mapper $mapper)
+    {
         $this->mappers[] = $mapper;
     }
 
-    public function map($configuration) {
+    /**
+     * @param $configuration
+     * @return mixed
+     * @throws Exception
+     */
+    public function map($configuration)
+    {
         foreach ($this->mappers as $mapper)
-            if ($mapper->isAppropriateFor($configuration))
+            if ( $mapper->isAppropriateFor($configuration) )
                 return $mapper->map($configuration);
+
         throw new Exception("Driver {$configuration['driver']} unsupported by package at this time.");
     }
 }

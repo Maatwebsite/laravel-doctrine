@@ -32,6 +32,7 @@ class DoctrineUserProvider implements UserProviderInterface
         $this->entityManager = $entityManager;
         $this->entity = $entity;
     }
+
     /**
      * Retrieve a user by their unique identifier.
 

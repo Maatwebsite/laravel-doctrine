@@ -14,11 +14,19 @@ trait Authentication {
      */
     private $rememberToken;
 
-    public function getPassword() {
+    /**
+     * @return mixed
+     */
+    public function getPassword()
+    {
         return $this->password;
     }
 
-    public function setPassword($password) {
+    /**
+     * @param $password
+     */
+    public function setPassword($password)
+    {
         $this->password = $password;
     }
 
@@ -26,15 +34,19 @@ trait Authentication {
      * Get the unique identifier for the user.
      * @return mixed
      */
-    public function getAuthIdentifier() {
-        return method_exists($this, 'getKeyName') ? $this->getKeyName() : 'id';
+    public function getAuthIdentifier()
+    {
+        $key = method_exists($this, 'getKeyName') ? $this->getKeyName() : 'id';
+
+        return $this->{$key};
     }
 
     /**
      * Get the password for the user.
      * @return string
      */
-    public function getAuthPassword() {
+    public function getAuthPassword()
+    {
         return $this->getPassword();
     }
 
@@ -42,7 +54,8 @@ trait Authentication {
      * Get the token value for the "remember me" session.
      * @return string
      */
-    public function getRememberToken() {
+    public function getRememberToken()
+    {
         return $this->rememberToken;
     }
 
@@ -51,7 +64,8 @@ trait Authentication {
      * @param  string $value
      * @return void
      */
-    public function setRememberToken($value) {
+    public function setRememberToken($value)
+    {
         $this->rememberToken = $value;
     }
 
@@ -59,7 +73,8 @@ trait Authentication {
      * Get the column name for the "remember me" token.
      * @return string
      */
-    public function getRememberTokenName() {
+    public function getRememberTokenName()
+    {
         return 'remember_token';
     }
 } 

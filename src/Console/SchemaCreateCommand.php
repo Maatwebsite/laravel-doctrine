@@ -8,7 +8,11 @@ class SchemaCreateCommand extends Command {
     protected $name = 'doctrine:schema:create';
     protected $description = 'Create database schema from models';
 
-    public function fire() {
+    /**
+     *
+     */
+    public function fire()
+    {
         $tool = $this->laravel->make('Doctrine\ORM\Tools\SchemaTool');
         $metadata = $this->laravel->make('Doctrine\ORM\Mapping\ClassMetadataFactory');
 
@@ -23,7 +27,11 @@ class SchemaCreateCommand extends Command {
         }
     }
 
-    protected function getOptions() {
+    /**
+     * @return array
+     */
+    protected function getOptions()
+    {
         return [
             ['sql', false, InputOption::VALUE_NONE, 'Dumps SQL query and does not execute creation.']
         ];
