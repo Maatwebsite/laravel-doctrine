@@ -7,6 +7,9 @@ class RedisProvider implements Provider
 {
     public function make($config = null) 
     {
+         if ( ! extension_loaded('redis'))
+             throw new \RuntimeException('Redis extension was not loaded.');
+        
         $redis = new Redis;
         $redis->connect($config['host'], $config['port']);
         if (isset($config['database']))
